@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, TouchableHighlight, Alert, Dimensions, Modal, BackHandler } from 'react-native';
+import { View, Text, TouchableHighlight, Modal, BackHandler } from 'react-native';
 
 export default class FlashScreen extends Component {
   state = {

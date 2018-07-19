@@ -10,17 +10,17 @@ export default class FreakingMath extends Component {
       math: '',
       result: '',
       result_show: '',
-      loop: '',
+      loop: [],
       timeCounter: Dimensions.get('window').width,
       width_screen: Dimensions.get('window').width,
-      modalVisible: true,
-      end: false
+      modalVisible: true
     }
     this.initMath = this.initMath.bind(this);
-  }
+    this.stopLoop = this.stopLoop.bind(this);
+  } 
 
   initMath() {
-    clearInterval(this.state.loop);
+    this.stopLoop();
     const list_oparetors_easy = ['+', '-'];
     const one = Math.floor(Math.random() * 10);
     const two = Math.floor(Math.random() * 10);
@@ -38,47 +38,50 @@ export default class FreakingMath extends Component {
 
   countDown() {
     const loop = setInterval(() => {
-      if(this.refs.timeCounter && !this.state.end){
+      if(this.refs.timeCounter){
         this.refs.timeCounter.measure((ox, oy, width, height) => {
-          this.setState({timeCounter: width - this.state.width_screen/20});
+          this.setState({timeCounter: width - this.state.width_screen/10});
         });
-        if(this.state.timeCounter <= this.state.width_screen/20){
-          clearInterval(loop); 
-          this.setState({end: true});
+        if(this.state.timeCounter <= 0){
+          this.setState({timeCounter: Dimensions.get('window').width});
+          this.onTimeover();
+          this.stopLoop();
+          this.setState({score: -1});
         };
       }
-    }, 50);
-    this.setState({loop: loop});
+    }, 100);
+    this.setState({loop: [...this.state.loop, loop]});
+  }
+
+  stopLoop(){
+    this.state.loop.forEach(function(loop){
+      clearInterval(loop);
+    });
   }
 
   onPressTouchableHighlight(boolean) {
-    clearInterval(this.state.loop);
-   if((this.state.result == this.state.result_show) == boolean){
     this.setState({timeCounter: Dimensions.get('window').width});
-    this.initMath();
-   } else {
-    this.setState({end: true});
-   } 
+    this.stopLoop();
+    if((this.state.result == this.state.result_show) == boolean){
+      this.initMath();
+    } else {
+      this.onTimeover();
+      this.setState({score: 0});
+    } 
   }
 
   onTimeover() {
-    if(this.state.end){
-      Alert.alert('Opps',
-        'Gem over, score: ' + this.state.score,
-        [
-          {
-            text: 'Again', onPress: () => {
-              this.setState({score: -1, end: false});
-              this.initMath();
-            }
-          }
-        ]
-      );
-    }
+    this.state.loop.forEach(function(loop){
+      clearInterval(loop);
+    });
+    Alert.alert('Opps',
+      'Gem over, score: ' + this.state.score,
+      [{text: 'Again'}]
+    );
+    this.initMath();
   }
 
   render() {
-    this.onTimeover();
     return (
       <View style={{flex: 1}}>
         <FlashScreen initMath={this.initMath}/>
